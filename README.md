@@ -2,8 +2,6 @@
 
 A lightweight macOS menu bar app that continuously monitors your internet connection quality and displays it as a colored sphere.
 
-![Internet Status in the macOS menu bar](screenshot.png)
-
 ## Why?
 
 Sometimes you need a quick, always-visible indicator of how your internet is doing — no dashboards, no terminal windows, just a glance at the menu bar:
