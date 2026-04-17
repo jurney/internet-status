@@ -3,7 +3,7 @@ import AppKit
 struct IconRenderer {
     static let menuBarHeight: CGFloat = 22.0
     static let maxDiameter: CGFloat = 16.0
-    static let minDiameter: CGFloat = 10.0
+    static let minDiameter: CGFloat = 5.0
     static let ringColor = NSColor(white: 0.65, alpha: 0.4)
     static let ringWidth: CGFloat = 1.0
 
@@ -151,9 +151,16 @@ struct IconRenderer {
 
     private static func sphereDiameter(avgLatencyMs: Double,
                                         pingMin: Double, pingMax: Double) -> CGFloat {
+        // t = 0.0 at pingMin (fast), 1.0 at pingMax (slow)
         let clamped = min(max(avgLatencyMs, pingMin), pingMax)
         let t = (clamped - pingMin) / (pingMax - pingMin)
-        return maxDiameter - CGFloat(t) * (maxDiameter - minDiameter)
+
+        let steepness = 1.1
+        let curved = pow((-log( (t * 0.9) + 0.1)), steepness)
+
+        // diameter goes from maxDiameter (fast) down to minDiameter (slow)
+        // maxDiameter = 16pt, minDiameter = 5pt
+        return maxDiameter - CGFloat(curved) * (maxDiameter - minDiameter)
     }
 
     private static func drawSphere(in rect: NSRect, color: NSColor) {
