@@ -7,21 +7,36 @@ struct IconRenderer {
     static let ringColor = NSColor(white: 0.65, alpha: 0.4)
     static let ringWidth: CGFloat = 1.0
 
+    // Cache to avoid re-rendering identical frames
+    private static var cachedImage: NSImage?
+    private static var cachedKey: UInt64 = 0
+
     static func render(packetLoss: Double, avgLatencyMs: Double,
-                       pingMin: Double, pingMax: Double) -> NSImage {
+                       pingMin: Double, pingMax: Double,
+                       dnsFailure: Bool = false) -> NSImage {
+        if dnsFailure {
+            let key = hashKey(packetLoss: -1, diameter: -1, dns: true)
+            if key == cachedKey, let img = cachedImage { return img }
+            let img = renderDnsFailure()
+            cachedKey = key
+            cachedImage = img
+            return img
+        }
+
         let color = sphereColor(packetLoss: packetLoss)
         let diameter = sphereDiameter(avgLatencyMs: avgLatencyMs,
                                        pingMin: pingMin, pingMax: pingMax)
+
+        let key = hashKey(packetLoss: packetLoss, diameter: Double(diameter), dns: false)
+        if key == cachedKey, let img = cachedImage { return img }
 
         let size = NSSize(width: menuBarHeight, height: menuBarHeight)
         let image = NSImage(size: size, flipped: false) { rect in
             let cx = rect.width / 2
             let cy = rect.height / 2
 
-            // Background ring at full size
             drawRing(cx: cx, cy: cy)
 
-            // Foreground sphere at current size
             let x = (rect.width - diameter) / 2
             let y = (rect.height - diameter) / 2
             let sphereRect = NSRect(x: x, y: y, width: diameter, height: diameter)
@@ -30,10 +45,15 @@ struct IconRenderer {
             return true
         }
         image.isTemplate = false
+        cachedKey = key
+        cachedImage = image
         return image
     }
 
     static func renderDisabled() -> NSImage {
+        let key = hashKey(packetLoss: -2, diameter: -2, dns: false)
+        if key == cachedKey, let img = cachedImage { return img }
+
         let color = NSColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1.0)
         let diameter = maxDiameter
 
@@ -46,7 +66,65 @@ struct IconRenderer {
             return true
         }
         image.isTemplate = false
+        cachedKey = key
+        cachedImage = image
         return image
+    }
+
+    private static func renderDnsFailure() -> NSImage {
+        let color = NSColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1.0)
+        let diameter = maxDiameter
+
+        let size = NSSize(width: menuBarHeight, height: menuBarHeight)
+        let image = NSImage(size: size, flipped: false) { rect in
+            let x = (rect.width - diameter) / 2
+            let y = (rect.height - diameter) / 2
+            let sphereRect = NSRect(x: x, y: y, width: diameter, height: diameter)
+            drawSphere(in: sphereRect, color: color)
+
+            // Draw red X over the sphere
+            let xColor = NSColor(red: 0.9, green: 0.1, blue: 0.1, alpha: 0.9)
+            xColor.setStroke()
+
+            let inset: CGFloat = diameter * 0.25
+            let x1 = sphereRect.minX + inset
+            let y1 = sphereRect.minY + inset
+            let x2 = sphereRect.maxX - inset
+            let y2 = sphereRect.maxY - inset
+
+            let line1 = NSBezierPath()
+            line1.lineWidth = 2.0
+            line1.lineCapStyle = .round
+            line1.move(to: NSPoint(x: x1, y: y1))
+            line1.line(to: NSPoint(x: x2, y: y2))
+            line1.stroke()
+
+            let line2 = NSBezierPath()
+            line2.lineWidth = 2.0
+            line2.lineCapStyle = .round
+            line2.move(to: NSPoint(x: x1, y: y2))
+            line2.line(to: NSPoint(x: x2, y: y1))
+            line2.stroke()
+
+            return true
+        }
+        image.isTemplate = false
+        return image
+    }
+
+    private static func hashKey(packetLoss: Double, diameter: Double, dns: Bool) -> UInt64 {
+        // Quantize to avoid floating point churn — color changes at thresholds,
+        // diameter changes in ~0.5pt steps
+        let colorBucket: UInt64
+        if dns { colorBucket = 99 }
+        else if packetLoss < 0 { colorBucket = 98 }  // disabled
+        else if packetLoss <= 0 { colorBucket = 0 }
+        else if packetLoss <= 20 { colorBucket = 1 }
+        else if packetLoss <= 80 { colorBucket = 2 }
+        else { colorBucket = 3 }
+
+        let diamBucket = diameter < 0 ? 999 : UInt64(diameter * 2)  // 0.5pt resolution
+        return colorBucket * 1000 + diamBucket
     }
 
     private static func drawRing(cx: CGFloat, cy: CGFloat) {
@@ -101,7 +179,6 @@ struct IconRenderer {
         ctx.addPath(path)
         ctx.clip()
 
-        // Highlight center offset up-left for 3D look
         let highlightCenter = CGPoint(x: cx - radius * 0.3, y: cy + radius * 0.3)
         ctx.drawRadialGradient(gradient,
                                 startCenter: highlightCenter,

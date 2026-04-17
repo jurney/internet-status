@@ -8,12 +8,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastStats: PingStats?
     private lazy var statusMenu: NSMenu = { buildMenu() }()
 
-    private let targets = [
-        "google.com",
-        "1.1.1.1",
-        "8.8.8.8",
-        "9.9.9.9",
-        "208.67.222.222"
+    private let targets: [(label: String, host: String)] = [
+        ("google.com", "google.com"),
+        ("Cloudflare DNS (1.1.1.1)", "1.1.1.1"),
+        ("Google DNS (8.8.8.8)", "8.8.8.8"),
+        ("Quad9 DNS (9.9.9.9)", "9.9.9.9"),
+        ("OpenDNS (208.67.222.222)", "208.67.222.222"),
     ]
 
     private let pingRangePresets: [(label: String, min: Double, max: Double)] = [
@@ -31,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     ]
 
     private var selectedTarget: String {
-        get { UserDefaults.standard.string(forKey: "target") ?? targets[0] }
+        get { UserDefaults.standard.string(forKey: "target") ?? targets[0].host }
         set { UserDefaults.standard.set(newValue, forKey: "target") }
     }
 
@@ -122,15 +122,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if pingEnabled {
             let packetLoss = stats?.packetLossPercent ?? 0
             let avgLatency = stats?.avgMs ?? 0
+            let dnsFailure = stats?.dnsFailure ?? false
             image = IconRenderer.render(packetLoss: packetLoss,
                                          avgLatencyMs: avgLatency,
                                          pingMin: pingMin,
-                                         pingMax: pingMax)
+                                         pingMax: pingMax,
+                                         dnsFailure: dnsFailure)
             if let s = stats {
-                statusItem.button?.toolTip = String(format:
-                    "Loss: %.1f%% (%d samples)\nAvg: %.1f ms\nMin: %.1f ms\nMax: %.1f ms",
-                    s.packetLossPercent, s.sampleCount,
-                    s.avgMs, s.minMs, s.maxMs)
+                if s.dnsFailure {
+                    statusItem.button?.toolTip = String(format:
+                        "DNS resolution failed for %@\nLoss: %.1f%% (%d samples)",
+                        selectedTarget, s.packetLossPercent, s.sampleCount)
+                } else {
+                    statusItem.button?.toolTip = String(format:
+                        "Loss: %.1f%% (%d samples)\nAvg: %.1f ms\nMin: %.1f ms\nMax: %.1f ms",
+                        s.packetLossPercent, s.sampleCount,
+                        s.avgMs, s.minMs, s.maxMs)
+                }
             } else {
                 statusItem.button?.toolTip = "Internet Status — starting..."
             }
@@ -149,11 +157,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         targetHeader.isEnabled = false
         menu.addItem(targetHeader)
 
-        for target in targets {
-            let item = NSMenuItem(title: target, action: #selector(selectTarget(_:)), keyEquivalent: "")
+        for t in targets {
+            let item = NSMenuItem(title: t.label, action: #selector(selectTarget(_:)), keyEquivalent: "")
             item.target = self
-            item.representedObject = target
-            if target == selectedTarget {
+            item.representedObject = t.host
+            if t.host == selectedTarget {
                 item.state = .on
             }
             menu.addItem(item)
