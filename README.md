@@ -2,6 +2,8 @@
 
 A lightweight macOS menu bar app that continuously monitors your internet connection quality and displays it as a colored sphere.
 
+![Internet Status icon in the menu bar](screenshot.png)
+
 ## Download & Install
 
 1. Download **[InternetStatus-1.0.0.zip](https://github.com/jurney/internet-status/releases/latest/download/InternetStatus-1.0.0.zip)**
