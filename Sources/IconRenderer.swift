@@ -161,8 +161,6 @@ struct IconRenderer {
         // curved = 0.0 at pingMin, ~.85 at t=0.5, 1.0 at pingMax
         let curved = 1.0 - pow((-log10((t * 0.9) + 0.1)), steepness)
 
-        //let curved = 0.05
-
         // diameter goes from maxDiameter (fast) down to minDiameter (slow)
         return maxDiameter - CGFloat(curved) * (maxDiameter - minDiameter)
     }
