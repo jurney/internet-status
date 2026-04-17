@@ -4,6 +4,15 @@ A lightweight macOS menu bar app that continuously monitors your internet connec
 
 ![Internet Status icon in the menu bar](screenshot.png)
 
+## Why?
+
+Sometimes you need a quick, always-visible indicator of how your internet is doing — no dashboards, no terminal windows, just a glance at the menu bar:
+
+- **On a plane** with spotty Wi-Fi — know instantly when the connection drops or degrades
+- **Working from a cafe or hotel** — catch connectivity issues before your video call does
+- **Debugging network problems** — see packet loss and latency trends at a glance without running a terminal ping
+- **Tethering from your phone** — monitor whether your mobile connection is holding up
+
 ## Download & Install
 
 1. Download **[InternetStatus-1.0.0.zip](https://github.com/jurney/internet-status/releases/latest/download/InternetStatus-1.0.0.zip)**
@@ -15,15 +24,6 @@ A lightweight macOS menu bar app that continuously monitors your internet connec
    - You only need to do this once
 
 A colored sphere will appear in your menu bar. That's it — you're running.
-
-## Why?
-
-Sometimes you need a quick, always-visible indicator of how your internet is doing — no dashboards, no terminal windows, just a glance at the menu bar:
-
-- **On a plane** with spotty Wi-Fi — know instantly when the connection drops or degrades
-- **Working from a cafe or hotel** — catch connectivity issues before your video call does
-- **Debugging network problems** — see packet loss and latency trends at a glance without running a terminal ping
-- **Tethering from your phone** — monitor whether your mobile connection is holding up
 
 ## How It Works
 
