@@ -155,11 +155,15 @@ struct IconRenderer {
         let clamped = min(max(avgLatencyMs, pingMin), pingMax)
         let t = (clamped - pingMin) / (pingMax - pingMin)
 
-        let steepness = 1.1
-        let curved = pow((-log( (t * 0.9) + 0.1)), steepness)
+        // Have more falloff from slight loss of ping vs min.
+        let steepness = 1.4
+        // curved describes degree of shrinkage
+        // curved = 0.0 at pingMin, ~.85 at t=0.5, 1.0 at pingMax
+        let curved = 1.0 - pow((-log10((t * 0.9) + 0.1)), steepness)
+
+        //let curved = 0.05
 
         // diameter goes from maxDiameter (fast) down to minDiameter (slow)
-        // maxDiameter = 16pt, minDiameter = 5pt
         return maxDiameter - CGFloat(curved) * (maxDiameter - minDiameter)
     }
 

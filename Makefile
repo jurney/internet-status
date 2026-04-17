@@ -1,16 +1,19 @@
 APP_NAME = Internet Status
-BUNDLE_NAME = Internet\ Status.app
 EXECUTABLE = InternetStatus
 SOURCES = $(wildcard Sources/*.swift)
 BUILD_DIR = build
 SWIFT_FLAGS = -O -whole-module-optimization
 VERSION = 1.0.0
+# Use a stamp file for make dependency tracking (spaces in app path break make)
+STAMP = $(BUILD_DIR)/.build-stamp
 
-.PHONY: all clean run release
+.PHONY: all build clean run release
 
-all: $(BUILD_DIR)/$(BUNDLE_NAME)
+all: build
 
-$(BUILD_DIR)/$(BUNDLE_NAME): $(SOURCES) Resources/Info.plist
+build: $(STAMP)
+
+$(STAMP): $(SOURCES) Resources/Info.plist
 	@mkdir -p "$(BUILD_DIR)/$(APP_NAME).app/Contents/MacOS"
 	@mkdir -p "$(BUILD_DIR)/$(APP_NAME).app/Contents/Resources"
 	swiftc $(SWIFT_FLAGS) -target arm64-apple-macos13 -o "$(BUILD_DIR)/$(EXECUTABLE)-arm64" $(SOURCES)
@@ -19,11 +22,13 @@ $(BUILD_DIR)/$(BUNDLE_NAME): $(SOURCES) Resources/Info.plist
 		"$(BUILD_DIR)/$(EXECUTABLE)-arm64" "$(BUILD_DIR)/$(EXECUTABLE)-x86_64"
 	@rm -f "$(BUILD_DIR)/$(EXECUTABLE)-arm64" "$(BUILD_DIR)/$(EXECUTABLE)-x86_64"
 	@cp Resources/Info.plist "$(BUILD_DIR)/$(APP_NAME).app/Contents/"
+	@touch $(STAMP)
 
-run: all
+run: build
+	@pkill -x $(EXECUTABLE) 2>/dev/null; sleep 0.5; true
 	@open "$(BUILD_DIR)/$(APP_NAME).app"
 
-release: clean all
+release: clean build
 	cd $(BUILD_DIR) && zip -r "InternetStatus-$(VERSION).zip" "$(APP_NAME).app"
 	@echo "Release zip: $(BUILD_DIR)/InternetStatus-$(VERSION).zip"
 
