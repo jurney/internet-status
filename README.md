@@ -15,7 +15,7 @@ Sometimes you need a quick, always-visible indicator of how your internet is doi
 
 ## Download & Install
 
-1. Download **[InternetStatus-1.0.0.zip](https://github.com/jurney/internet-status/releases/latest/download/InternetStatus-1.0.0.zip)**
+1. Download **[InternetStatus-1.0.1.zip](https://github.com/jurney/internet-status/releases/latest/download/InternetStatus-1.0.1.zip)**
 2. Unzip it (double-click the .zip file)
 3. Drag **Internet Status.app** to your **Applications** folder
 4. Double-click to launch — if macOS says the app is from an "unidentified developer":

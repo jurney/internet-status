@@ -3,7 +3,7 @@ EXECUTABLE = InternetStatus
 SOURCES = $(wildcard Sources/*.swift)
 BUILD_DIR = build
 SWIFT_FLAGS = -O -whole-module-optimization
-VERSION = 1.0.0
+VERSION = 1.0.1
 # Use a stamp file for make dependency tracking (spaces in app path break make)
 STAMP = $(BUILD_DIR)/.build-stamp
 
